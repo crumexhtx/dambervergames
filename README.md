@@ -40,8 +40,10 @@ Bank wood from extracts (and **25% on death from Wave 6+**). Unlock tree include
 
 ## Debug / mobile options
 
-Settings → reduce shake, damage numbers, large joystick, **perf lite**, balance sliders, **dev overlay**.
+Settings → reduce shake, damage numbers, large joystick, **perf lite**.
 
-In-run: press **F3** for FPS / wave budget / wood-per-min overlay.
+**Debug builds only:** balance sliders + F3 overlay (hidden in release exports).
 
-See [`docs/BALANCE.md`](docs/BALANCE.md) for fairness targets from the feel pass.
+## Testing
+
+See [`docs/TESTING.md`](docs/TESTING.md) for headless smoke + unit checks.

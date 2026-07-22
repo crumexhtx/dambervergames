@@ -156,11 +156,13 @@ func _apply_thorns(delta: float) -> void:
 		return
 	_thorns_tick = 0.0
 	var r := GameState.pixels(1.0)
+	# thorns_dps stores damage-per-tick (8 every 0.5s), not DPS
+	var tick_dmg := GameState.thorns_dps * GameState.global_damage * DebugBalance.player_damage_mult
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(e):
 			continue
 		if global_position.distance_to(e.global_position) <= r and e.has_method("take_damage"):
-			e.take_damage(GameState.thorns_dps * 0.5 * GameState.global_damage * DebugBalance.player_damage_mult, global_position)
+			e.take_damage(tick_dmg, global_position)
 
 
 func _tick_decoy(delta: float) -> void:
