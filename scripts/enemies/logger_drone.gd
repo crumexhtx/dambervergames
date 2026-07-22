@@ -43,11 +43,17 @@ func _physics_process(delta: float) -> void:
 	velocity = dir * spd + knockback
 	knockback = knockback.move_toward(Vector2.ZERO, 200.0 * delta)
 	move_and_slide()
+	if _anim:
+		var face := to_p if to_p.length() > 1.0 else dir
+		_anim.set_facing_dir(face)
+		_anim.set_speed_factor(clampf(velocity.length() / maxf(1.0, GameState.pixels(move_speed)), 0.0, 1.2))
 
 	_shoot_cd -= delta
 	if _shoot_cd <= 0.0:
 		_shoot_cd = 2.2
 		_fire_at(player.global_position)
+		if _anim:
+			_anim.play_oneshot("attack", 0.22)
 
 
 func _fire_at(target: Vector2) -> void:

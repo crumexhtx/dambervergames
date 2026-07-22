@@ -1,0 +1,1 @@
+Drop sheet.png here (drone). See docs/ART.md for frame layout.

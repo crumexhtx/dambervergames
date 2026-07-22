@@ -1,0 +1,1 @@
+Drop sheet.png here (rat). See docs/ART.md for frame layout.

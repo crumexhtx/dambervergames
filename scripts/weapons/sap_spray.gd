@@ -28,6 +28,8 @@ func fire() -> void:
 	tw.tween_property(poly, "modulate:a", 0.0, 0.15)
 	tw.tween_callback(poly.queue_free)
 	Juice.play_sfx("sap")
+	if player and player.has_method("play_attack_anim"):
+		player.play_attack_anim()
 
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(e):

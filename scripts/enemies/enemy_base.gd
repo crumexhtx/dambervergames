@@ -16,8 +16,10 @@ var slow_factor: float = 1.0
 var slow_timer: float = 0.0
 var knockback: Vector2 = Vector2.ZERO
 var _visual_root: Node2D
+var _anim: CharacterAnimator
 var _hp_mult: float = 1.0
 var _dmg_mult: float = 1.0
+var _dying: bool = false
 
 
 func _ready() -> void:
@@ -44,11 +46,16 @@ func configure(elite: bool = false, wave_mult: float = 1.0) -> void:
 
 func _build_visual() -> void:
 	if _visual_root and is_instance_valid(_visual_root):
-		_visual_root.queue_free()
+		remove_child(_visual_root)
+		_visual_root.free()
+	_anim = null
 	_visual_root = Node2D.new()
 	_visual_root.name = "Visual"
 	add_child(_visual_root)
-	_draw_silhouette(_visual_root)
+	_anim = CharacterAnimator.new()
+	_anim.name = "Anim"
+	_visual_root.add_child(_anim)
+	_anim.setup(enemy_id, is_elite)
 	var shape := get_node_or_null("CollisionShape2D")
 	if shape == null:
 		shape = CollisionShape2D.new()
@@ -59,7 +66,8 @@ func _build_visual() -> void:
 
 
 func _draw_silhouette(host: Node2D) -> void:
-	Silhouettes.build_hornet(host, is_elite)
+	## Kept for subclasses that still call it; prefer CharacterAnimator via enemy_id.
+	Silhouettes.build_articulated(host, enemy_id, is_elite)
 
 
 func get_contact_damage() -> float:
@@ -67,12 +75,16 @@ func get_contact_damage() -> float:
 
 
 func take_damage(amount: float, from_pos: Vector2 = Vector2.ZERO) -> void:
+	if _dying:
+		return
 	hp -= amount
 	GameState.record_damage(amount)
 	var big := is_elite or is_in_group("boss")
 	Juice.spawn_damage_number(global_position, amount, big)
 	if big:
 		Juice.hit_impact(global_position, true)
+	if _anim:
+		_anim.play_oneshot("hit", 0.16)
 	if from_pos != Vector2.ZERO:
 		apply_knockback((global_position - from_pos).normalized() * (55.0 if big else 40.0))
 	if hp <= 0.0:
@@ -89,11 +101,19 @@ func apply_slow(amount: float, duration: float) -> void:
 
 
 func die() -> void:
+	if _dying:
+		return
+	_dying = true
 	GameState.record_kill()
 	var col := Color(0.5, 0.7, 0.3)
 	Juice.spawn_leaf_burst(global_position, col)
 	_drop_loot()
-	queue_free()
+	if _anim:
+		_anim.play("death")
+		var t := get_tree().create_timer(0.35)
+		t.timeout.connect(queue_free)
+	else:
+		queue_free()
 
 
 func _drop_loot() -> void:
@@ -120,8 +140,13 @@ func _drop_loot() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if _dying:
+		velocity = Vector2.ZERO
+		return
 	if not GameState.run_active or GameState.soft_paused or GameState.in_breather:
 		velocity = Vector2.ZERO
+		if _anim:
+			_anim.set_speed_factor(0.0)
 		return
 	if slow_timer > 0.0:
 		slow_timer -= delta
@@ -133,6 +158,9 @@ func _physics_process(delta: float) -> void:
 	velocity = dir * spd + knockback
 	knockback = knockback.move_toward(Vector2.ZERO, 200.0 * delta)
 	move_and_slide()
+	if _anim:
+		_anim.set_facing_dir(velocity if velocity.length() > 8.0 else dir)
+		_anim.set_speed_factor(clampf(velocity.length() / maxf(1.0, GameState.pixels(move_speed)), 0.0, 1.2))
 
 
 func _chase_target() -> Vector2:
