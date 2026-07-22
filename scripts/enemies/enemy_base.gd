@@ -1,0 +1,134 @@
+extends CharacterBody2D
+class_name EnemyBase
+## Shared enemy: chase, contact damage, elite flag, XP/wood drops.
+
+@export var enemy_id: String = "hornet"
+@export var max_hp: float = 18.0
+@export var move_speed: float = 3.6
+@export var contact_damage: float = 8.0
+@export var spawn_cost: int = 2
+@export var xp_on_death: float = 1.0
+@export var wood_on_death: int = 0
+
+var hp: float = 18.0
+var is_elite: bool = false
+var slow_factor: float = 1.0
+var slow_timer: float = 0.0
+var knockback: Vector2 = Vector2.ZERO
+var _visual: Polygon2D
+var _hp_mult: float = 1.0
+var _dmg_mult: float = 1.0
+
+
+func _ready() -> void:
+	add_to_group("enemies")
+	hp = max_hp * DebugBalance.hp_mult * _hp_mult
+	_build_visual()
+	collision_layer = 2
+	collision_mask = 1 | 64
+
+
+func configure(elite: bool = false, wave_mult: float = 1.0) -> void:
+	is_elite = elite
+	_hp_mult = wave_mult * (2.0 if elite else 1.0)
+	_dmg_mult = (1.25 if elite else 1.0)
+	if elite:
+		add_to_group("elite")
+		scale = Vector2(1.3, 1.3)
+		xp_on_death = 15.0
+		wood_on_death = maxi(1, wood_on_death + 2)
+	hp = max_hp * DebugBalance.hp_mult * _hp_mult
+
+
+func _build_visual() -> void:
+	_visual = Polygon2D.new()
+	_visual.polygon = PackedVector2Array([
+		Vector2(-10, -8), Vector2(10, -8), Vector2(12, 8), Vector2(-12, 8)
+	])
+	_visual.color = Color(0.9, 0.75, 0.15) if not is_elite else Color(1.0, 0.35, 0.15)
+	add_child(_visual)
+	var shape := CollisionShape2D.new()
+	var circle := CircleShape2D.new()
+	circle.radius = 12.0
+	shape.shape = circle
+	add_child(shape)
+
+
+func get_contact_damage() -> float:
+	return contact_damage * _dmg_mult
+
+
+func take_damage(amount: float, from_pos: Vector2 = Vector2.ZERO) -> void:
+	hp -= amount
+	GameState.record_damage(amount)
+	Juice.spawn_damage_number(global_position, amount)
+	if from_pos != Vector2.ZERO:
+		apply_knockback((global_position - from_pos).normalized() * 40.0)
+	if hp <= 0.0:
+		die()
+
+
+func apply_knockback(force: Vector2) -> void:
+	knockback = force
+
+
+func apply_slow(amount: float, duration: float) -> void:
+	slow_factor = 1.0 - amount
+	slow_timer = maxf(slow_timer, duration)
+
+
+func die() -> void:
+	GameState.record_kill()
+	Juice.spawn_leaf_burst(global_position, _visual.color if _visual else Color(0.5, 0.7, 0.3))
+	_drop_loot()
+	queue_free()
+
+
+func _drop_loot() -> void:
+	var world := get_tree().current_scene.get_node_or_null("World")
+	if world == null:
+		return
+	var gem_scene = preload("res://scripts/loot/xp_gem.gd")
+	var gem := Area2D.new()
+	gem.set_script(gem_scene)
+	world.add_child(gem)
+	gem.global_position = global_position + Vector2(randf_range(-8, 8), randf_range(-8, 8))
+	var xp_val := xp_on_death
+	if xp_val >= 15.0:
+		gem.setup(15)
+	elif xp_val >= 5.0:
+		gem.setup(5)
+	else:
+		gem.setup(1)
+	if wood_on_death > 0:
+		var pickup := Area2D.new()
+		pickup.set_script(preload("res://scripts/loot/pickup.gd"))
+		world.add_child(pickup)
+		pickup.global_position = global_position + Vector2(randf_range(-12, 12), randf_range(-12, 12))
+		pickup.setup("wood", wood_on_death)
+
+
+func _physics_process(delta: float) -> void:
+	if not GameState.run_active or GameState.soft_paused:
+		velocity = Vector2.ZERO
+		return
+	if slow_timer > 0.0:
+		slow_timer -= delta
+		if slow_timer <= 0.0:
+			slow_factor = 1.0
+	var target_pos: Vector2 = _chase_target()
+	var dir: Vector2 = (target_pos - global_position).normalized()
+	var spd: float = GameState.pixels(move_speed) * slow_factor
+	velocity = dir * spd + knockback
+	knockback = knockback.move_toward(Vector2.ZERO, 200.0 * delta)
+	move_and_slide()
+
+
+func _chase_target() -> Vector2:
+	for d in get_tree().get_nodes_in_group("decoy"):
+		if is_instance_valid(d) and d is Node2D and d.visible:
+			return (d as Node2D).global_position
+	var player := get_tree().get_first_node_in_group("player") as Node2D
+	if player:
+		return player.global_position
+	return global_position
