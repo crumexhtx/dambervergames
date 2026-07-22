@@ -13,9 +13,9 @@ const CARDS := [
 	{"id": "STAT_XP", "name": "Curious Beaver", "desc": "+20% XP gain", "rarity": "common", "kind": "stat"},
 	{"id": "UTIL_MAG", "name": "Cheek Pouch", "desc": "+40% pickup radius", "rarity": "common", "kind": "util"},
 	{"id": "UTIL_ATK", "name": "Mean Streak", "desc": "+12% global damage", "rarity": "common", "kind": "util"},
-	{"id": "RARE_THORN", "name": "Burr Coat", "desc": "8 dmg aura / 0.5s", "rarity": "rare", "kind": "rare"},
-	{"id": "RARE_DECOY", "name": "Decoy Dam", "desc": "Decoy every 12s", "rarity": "rare", "kind": "rare"},
-	{"id": "RARE_OVERBITE", "name": "Overbite", "desc": "Dash deals 25 path dmg", "rarity": "rare", "kind": "rare"},
+	{"id": "RARE_THORN", "name": "Burr Coat", "desc": "8 damage every 0.5s in 1u", "rarity": "rare", "kind": "rare", "once": true},
+	{"id": "RARE_DECOY", "name": "Decoy Dam", "desc": "Decoy every 12s", "rarity": "rare", "kind": "rare", "once": true},
+	{"id": "RARE_OVERBITE", "name": "Overbite", "desc": "Dash deals 25 path dmg", "rarity": "rare", "kind": "rare", "once": true},
 ]
 
 
@@ -60,6 +60,18 @@ static func _is_available(c: Dictionary) -> bool:
 		var w: String = c.weapon
 		if w in GameState.owned_weapons and int(GameState.weapon_ranks.get(w, 0)) >= 5:
 			return false
+	# One-time rares / utilities already owned
+	if bool(c.get("once", false)):
+		match str(c.id):
+			"RARE_THORN":
+				if GameState.thorns_dps > 0.0:
+					return false
+			"RARE_DECOY":
+				if GameState.decoy_enabled:
+					return false
+			"RARE_OVERBITE":
+				if GameState.overbite_enabled:
+					return false
 	return true
 
 
@@ -90,6 +102,7 @@ static func apply(card: Dictionary, player: Player) -> void:
 		"UTIL_ATK":
 			GameState.global_damage += 0.12
 		"RARE_THORN":
+			# 8 damage every 0.5s (matches card text)
 			GameState.thorns_dps = 8.0
 		"RARE_DECOY":
 			GameState.decoy_enabled = true

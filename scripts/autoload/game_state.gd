@@ -187,6 +187,17 @@ func succeed_extract() -> void:
 	_end_run(true)
 
 
+func abandon_run() -> void:
+	## Quit to menu mid-run: bank Wave 6+ partial wood, no summary UI.
+	if not run_active:
+		return
+	run_active = false
+	soft_paused = false
+	in_breather = false
+	if wave >= 6 and wood > 0:
+		MetaProgression.bank_wood(int(wood * 0.25))
+
+
 func _end_run(success: bool) -> void:
 	if not run_active:
 		return

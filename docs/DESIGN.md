@@ -71,7 +71,13 @@ Forest clearing ~50×50 u, hand-scattered props, ponds, Dam Extract Zone north. 
 
 ## Feel / a11y
 
-Screen shake, damage numbers, vacuum arcs, level-up stinger, leaf death bursts, procedural SFX. Toggles: reduce shake, damage numbers, large joystick, perf lite.
+## Feel / a11y
+
+Screen shake, damage numbers, vacuum arcs, level-up stinger, leaf death bursts, procedural SFX, elite/boss hit rings + soft hitstop. Fox lunge telegraph locks direction. Dam pulse + arrow when extract opens. Toggles: reduce shake, damage numbers, large joystick, perf lite. Debug balance tools are debug-build only.
+
+## Balance
+
+See [`BALANCE.md`](BALANCE.md). Early waves gentler; breathers freeze enemies; Tail Slap buffed for W1–3 clarity.
 
 ## Mobile
 

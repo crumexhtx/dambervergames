@@ -3,6 +3,7 @@ class_name XPGem
 
 var xp_value: int = 1
 var _magnetized: bool = false
+var _collected: bool = false
 var _visual: Polygon2D
 
 
@@ -42,7 +43,7 @@ func _build() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if GameState.soft_paused:
+	if _collected or GameState.soft_paused:
 		return
 	var player := get_tree().get_first_node_in_group("player") as Node2D
 	if player == null:
@@ -65,6 +66,11 @@ func _on_body(body: Node) -> void:
 
 
 func _collect() -> void:
+	if _collected:
+		return
+	_collected = true
+	set_physics_process(false)
+	monitoring = false
 	GameState.add_xp(float(xp_value))
 	Juice.play_sfx("pickup")
 	queue_free()
