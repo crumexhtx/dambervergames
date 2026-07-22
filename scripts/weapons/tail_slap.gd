@@ -35,3 +35,5 @@ func fire() -> void:
 				e.apply_knockback((e.global_position - player.global_position).normalized() * 110.0)
 	if hit_any:
 		Juice.play_sfx("tail")
+	if player and player.has_method("play_attack_anim"):
+		player.play_attack_anim()

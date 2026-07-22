@@ -19,6 +19,9 @@ var _dash_dir: Vector2 = Vector2.RIGHT
 var _contact_tick: float = 0.0
 var _thorns_tick: float = 0.0
 var _decoy_timer: float = 0.0
+var _anim: CharacterAnimator
+var _chewing: bool = false
+var _prev_hp: float = 100.0
 
 const DASH_DURATION := 0.12
 
@@ -29,9 +32,16 @@ func _ready() -> void:
 		(body_visual as Polygon2D).polygon = PackedVector2Array()
 		(body_visual as Polygon2D).color = Color(0, 0, 0, 0)
 	if body_visual:
-		Silhouettes.build_beaver(body_visual)
+		for c in body_visual.get_children():
+			c.queue_free()
+		_anim = CharacterAnimator.new()
+		_anim.name = "Anim"
+		body_visual.add_child(_anim)
+		_anim.setup("beaver")
 	if has_node("Tail"):
 		$Tail.visible = false
+	_prev_hp = GameState.hp
+	GameState.hp_changed.connect(_on_hp_changed)
 	_update_pickup_radius()
 	hitbox.body_entered.connect(_on_hitbox_body)
 	hitbox.area_entered.connect(_on_hitbox_area)
@@ -86,6 +96,7 @@ func _physics_process(delta: float) -> void:
 	_apply_thorns(delta)
 	_tick_decoy(delta)
 	_contact_enemies(delta)
+	_update_anim()
 
 
 func set_move_input(v: Vector2) -> void:
@@ -105,7 +116,29 @@ func try_dash() -> void:
 	_dash_timer = DASH_DURATION
 	_dash_dir = last_move_dir if last_move_dir.length() > 0.1 else Vector2.RIGHT
 	_iframe_timer = GameState.dash_iframes
+	if _anim:
+		_anim.play_oneshot("dash", DASH_DURATION + 0.05)
 	Juice.shake(4.0, 0.08)
+
+
+func play_attack_anim() -> void:
+	if _anim:
+		_anim.play_oneshot("attack", 0.28)
+
+
+func _update_anim() -> void:
+	if _anim == null:
+		return
+	_anim.set_facing_dir(last_move_dir)
+	var max_spd := maxf(1.0, GameState.pixels(GameState.move_speed))
+	_anim.set_speed_factor(0.0 if _dashing else velocity.length() / max_spd)
+	_anim.set_chewing(_chewing)
+
+
+func _on_hp_changed(hp: float, _max_hp: float) -> void:
+	if hp < _prev_hp - 0.5 and _anim:
+		_anim.play_oneshot("hit", 0.18)
+	_prev_hp = hp
 
 
 func _overbite_strike() -> void:
@@ -144,6 +177,7 @@ func _chew_nearest(delta: float) -> void:
 		if d < best_d:
 			best_d = d
 			best = n
+	_chewing = best != null
 	if best and best.has_method("receive_chew"):
 		best.receive_chew(GameState.chew_dps * delta)
 

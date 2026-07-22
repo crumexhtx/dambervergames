@@ -34,8 +34,11 @@ Bank wood from extracts (and **25% on death from Wave 6+**). Unlock tree include
 ## Project layout
 
 - `docs/DESIGN.md` — systems blueprint
+- `docs/ART.md` — character animation + sprite drop-in pipeline
 - `assets/sfx/` — procedural hit / pickup / level-up WAVs
-- `scripts/fx/silhouettes.gd` — readable beaver / enemy / prop shapes
+- `assets/sprites/characters/` — optional per-character `sheet.png` overrides
+- `scripts/fx/character_animator.gd` — idle/run/dash/chew/attack/hit/death
+- `scripts/fx/silhouettes.gd` — articulated beaver / enemy / prop shapes
 - `scenes/` — menu, run, unlocks, settings
 
 ## Debug / mobile options

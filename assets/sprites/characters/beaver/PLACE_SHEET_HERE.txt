@@ -1,0 +1,1 @@
+Drop sheet.png here (beaver). See docs/ART.md for frame layout.

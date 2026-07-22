@@ -54,11 +54,17 @@ func _physics_process(delta: float) -> void:
 		if _windup_line:
 			_windup_line.points = PackedVector2Array([Vector2.ZERO, _lunge_dir * 48.0])
 			_windup_line.default_color = Color(1.0, 0.4, 0.1, 0.85)
-		modulate = Color(1.3, 1.1, 0.9)
+		if _anim:
+			_anim.set_facing_dir(_lunge_dir)
+			_anim.force_state("telegraph")
+		else:
+			modulate = Color(1.3, 1.1, 0.9)
 		if _telegraph <= 0.0:
 			_lunge_timer = 0.35
 			_windup_line.default_color.a = 0.0
 			modulate = Color.WHITE
+			if _anim:
+				_anim.force_state("lunge")
 		return
 
 	# Lunge: commit to locked direction (no redirect mid-lunge)
@@ -67,11 +73,18 @@ func _physics_process(delta: float) -> void:
 		velocity = _lunge_dir * GameState.pixels(2.7 * 1.35) + knockback
 		knockback = knockback.move_toward(Vector2.ZERO, 200.0 * delta)
 		move_and_slide()
+		if _anim:
+			_anim.set_facing_dir(_lunge_dir)
+			_anim.set_speed_factor(1.2)
 		if _lunge_timer <= 0.0:
 			_dir_locked = false
+			if _anim:
+				_anim.clear_force()
 		return
 
 	_dir_locked = false
+	if _anim:
+		_anim.clear_force()
 	move_speed = 2.7
 	if _lunge_cd <= 0.0:
 		_lunge_cd = 3.2

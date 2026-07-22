@@ -9,6 +9,7 @@ func _ready() -> void:
 	failed += _check_meta_roundtrip()
 	failed += _check_abandon_banks()
 	failed += _check_pickup_guard_exists()
+	failed += _check_character_animator()
 	if failed == 0:
 		print("UNIT_CHECKS_OK")
 		get_tree().quit(0)
@@ -78,4 +79,39 @@ func _check_pickup_guard_exists() -> int:
 		printerr("FAIL: missing _collected guard")
 		return 1
 	print("OK pickup_guard")
+	return 0
+
+
+func _check_character_animator() -> int:
+	var def := CharacterCatalog.get_def("beaver")
+	if def.silhouette_key != "beaver" or def.sprite_dir.is_empty():
+		printerr("FAIL: beaver catalog def")
+		return 1
+	var host := Node2D.new()
+	add_child(host)
+	var anim := CharacterAnimator.new()
+	host.add_child(anim)
+	anim.setup("beaver")
+	if anim.mode != CharacterAnimator.Mode.SILHOUETTE:
+		printerr("FAIL: expected silhouette mode without sheet")
+		return 1
+	var body := anim.find_child("body", true, false)
+	var head := anim.find_child("head", true, false)
+	var tail := anim.find_child("tail", true, false)
+	if body == null or head == null or tail == null:
+		printerr("FAIL: beaver missing articulated parts")
+		return 1
+	anim.play_oneshot("attack", 0.1)
+	anim.force_state("telegraph")
+	anim.clear_force()
+	anim.play("death")
+	if anim.current_state() != "death":
+		printerr("FAIL: death state not forced")
+		return 1
+	var fox_def := CharacterCatalog.get_def("fox")
+	if fox_def.silhouette_key != "fox":
+		printerr("FAIL: fox catalog")
+		return 1
+	print("OK character_animator")
+	host.queue_free()
 	return 0
