@@ -29,5 +29,6 @@ func fire() -> void:
 			continue
 		if player.global_position.distance_to(e.global_position) <= r and e.has_method("take_damage"):
 			e.take_damage(damage(), player.global_position)
+			Juice.play_sfx("tail")
 			if e.has_method("apply_knockback"):
 				e.apply_knockback((e.global_position - player.global_position).normalized() * 80.0)

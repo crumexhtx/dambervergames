@@ -43,11 +43,13 @@ func _build() -> void:
 func _physics_process(delta: float) -> void:
 	if GameState.soft_paused:
 		return
-	var player := get_tree().get_first_node_in_group("player")
+	var player := get_tree().get_first_node_in_group("player") as Node2D
 	if player == null:
 		return
-	var d := global_position.distance_to(player.global_position)
+	var d: float = global_position.distance_to(player.global_position)
 	if d <= GameState.pixels(GameState.pickup_radius) * 2.2:
+		if not _magnetized:
+			Juice.spawn_vacuum_arc(global_position, player.global_position, Color(0.85, 0.65, 0.3, 0.5))
 		_magnetized = true
 	if _magnetized:
 		global_position = global_position.move_toward(player.global_position, 260.0 * delta)

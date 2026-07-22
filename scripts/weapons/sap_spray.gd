@@ -27,6 +27,7 @@ func fire() -> void:
 	var tw := poly.create_tween()
 	tw.tween_property(poly, "modulate:a", 0.0, 0.15)
 	tw.tween_callback(poly.queue_free)
+	Juice.play_sfx("sap")
 
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(e):

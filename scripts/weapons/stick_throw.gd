@@ -36,3 +36,4 @@ func fire() -> void:
 	var speed := GameState.pixels(8.0)
 	var life := GameState.pixels(6.0) / speed
 	stick.setup(dir * speed, life, damage(), player)
+	Juice.play_sfx("stick")

@@ -28,7 +28,13 @@ func show_offers(offers: Array[Dictionary]) -> void:
 		btn.text = "%s\n\n%s\n[%s]" % [card.name, card.desc, str(card.rarity).capitalize()]
 		btn.pressed.connect(_pick.bind(card))
 		cards_row.add_child(btn)
-	Juice.shake(3.0, 0.1)
+	Juice.level_up_stinger()
+	# Pop-in cards
+	panel.scale = Vector2(0.85, 0.85)
+	panel.modulate.a = 0.0
+	var tw := panel.create_tween()
+	tw.tween_property(panel, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(panel, "modulate:a", 1.0, 0.12)
 
 
 func _pick(card: Dictionary) -> void:
