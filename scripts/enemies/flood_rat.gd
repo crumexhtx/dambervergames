@@ -4,9 +4,9 @@ class_name FloodRatEnemy
 
 func _init() -> void:
 	enemy_id = "rat"
-	max_hp = 10.0
-	move_speed = 4.2
-	contact_damage = 5.0
+	max_hp = 9.0
+	move_speed = 4.0
+	contact_damage = 4.0
 	spawn_cost = 1
 	xp_on_death = 1.0
 

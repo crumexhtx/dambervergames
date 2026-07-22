@@ -49,6 +49,7 @@ var upgrades_taken: Array[String] = []
 var boss_killed: bool = false
 var extract_available: bool = false
 var extract_reduced_bonus: bool = false
+var in_breather: bool = false
 
 var weapon_ranks: Dictionary = {"tail": 0}
 var owned_weapons: Array[String] = ["tail"]
@@ -94,6 +95,7 @@ func start_run() -> void:
 	boss_killed = false
 	extract_available = false
 	extract_reduced_bonus = false
+	in_breather = false
 	weapon_ranks = {"tail": 0}
 	owned_weapons = ["tail"]
 	thorns_dps = 0.0

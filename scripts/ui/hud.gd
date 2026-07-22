@@ -1,6 +1,6 @@
 extends Control
 class_name HUD
-## In-run HUD.
+## In-run HUD + optional dev overlay (F3 / Settings).
 
 @onready var hp_bar: ProgressBar = $Top/HPBar
 @onready var xp_bar: ProgressBar = $Top/XPBar
@@ -16,6 +16,10 @@ class_name HUD
 @onready var extract_bar: ProgressBar = $Center/ExtractBar
 
 var _banner_time: float = 0.0
+var _dev_label: Label
+var wave_director: Node = null
+var _wood_at_start: int = 0
+var _time_mark: float = 0.0
 
 
 func _ready() -> void:
@@ -37,6 +41,20 @@ func _ready() -> void:
 	_on_inv(GameState.wood, GameState.stone, GameState.berries)
 	_on_dash(GameState.dash_charges, GameState.dash_max_charges, GameState.dash_cooldown)
 	_refresh_weapons()
+	_wood_at_start = GameState.wood
+	_time_mark = Time.get_ticks_msec() / 1000.0
+	_dev_label = Label.new()
+	_dev_label.name = "DevOverlay"
+	_dev_label.visible = DebugBalance.show_dev_overlay
+	_dev_label.position = Vector2(16, 210)
+	_dev_label.add_theme_font_size_override("font_size", 13)
+	_dev_label.add_theme_color_override("font_color", Color(0.85, 1.0, 0.75, 0.9))
+	_dev_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_dev_label)
+
+
+func bind_wave_director(director: Node) -> void:
+	wave_director = director
 
 
 func _process(delta: float) -> void:
@@ -44,6 +62,46 @@ func _process(delta: float) -> void:
 		_banner_time -= delta
 		if _banner_time <= 0.0:
 			banner_label.visible = false
+	_update_dev_overlay()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F3:
+		DebugBalance.show_dev_overlay = not DebugBalance.show_dev_overlay
+		_dev_label.visible = DebugBalance.show_dev_overlay
+		get_viewport().set_input_as_handled()
+
+
+func _update_dev_overlay() -> void:
+	if _dev_label == null or not _dev_label.visible:
+		return
+	var enemies := get_tree().get_nodes_in_group("enemies").size()
+	var elapsed: float = maxf(0.01, GameState.time_alive)
+	var wood_rate: float = GameState.wood / elapsed * 60.0
+	var killed := 0.0
+	var spawned := 0.0
+	var budget := 0.0
+	var phase_name := "?"
+	if wave_director:
+		killed = float(wave_director.get("killed_value"))
+		spawned = float(wave_director.get("spawned_value"))
+		budget = float(wave_director.get("budget_total"))
+		var ph = wave_director.get("phase")
+		phase_name = str(ph)
+	_dev_label.text = "DEV  FPS %.0f | enemies %d | wave %d | phase %s\nbudget %.0f  killed/spawned %.0f/%.0f (%.0f%%)\nwood/min %.1f  dmg %.0f  lvl %d  breather %s" % [
+		Engine.get_frames_per_second(),
+		enemies,
+		GameState.wave,
+		phase_name,
+		budget,
+		killed,
+		spawned,
+		(100.0 * killed / maxf(1.0, spawned * 0.7)),
+		wood_rate,
+		GameState.damage_dealt,
+		GameState.level,
+		"Y" if GameState.in_breather else "N",
+	]
 
 
 func show_banner(text: String, duration: float = 2.0) -> void:
@@ -89,7 +147,7 @@ func _on_boss(cur: float, mx: float) -> void:
 
 func _on_extract(available: bool) -> void:
 	extract_label.visible = available
-	extract_label.text = "Hold at DAM to extract" if available else ""
+	extract_label.text = "→ Hold at DAM to extract" if available else ""
 
 
 func _on_dash(charges: int, max_c: int, cd: float) -> void:

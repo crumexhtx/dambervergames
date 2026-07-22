@@ -19,9 +19,9 @@ var _alive: bool = true
 
 func _init() -> void:
 	enemy_id = "bulldozer"
-	max_hp = 1200.0
+	max_hp = 1050.0
 	move_speed = 2.0
-	contact_damage = 20.0
+	contact_damage = 18.0
 	spawn_cost = 0
 	xp_on_death = 25.0
 	wood_on_death = 8
@@ -60,6 +60,7 @@ func take_damage(amount: float, from_pos: Vector2 = Vector2.ZERO) -> void:
 	hp -= amount
 	GameState.record_damage(amount)
 	Juice.spawn_damage_number(global_position, amount, true)
+	Juice.hit_impact(global_position, true)
 	GameState.boss_hp_changed.emit(hp, max_hp)
 	var pct := hp / max_hp
 	if pct <= 0.3:

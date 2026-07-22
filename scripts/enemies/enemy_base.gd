@@ -69,9 +69,12 @@ func get_contact_damage() -> float:
 func take_damage(amount: float, from_pos: Vector2 = Vector2.ZERO) -> void:
 	hp -= amount
 	GameState.record_damage(amount)
-	Juice.spawn_damage_number(global_position, amount)
+	var big := is_elite or is_in_group("boss")
+	Juice.spawn_damage_number(global_position, amount, big)
+	if big:
+		Juice.hit_impact(global_position, true)
 	if from_pos != Vector2.ZERO:
-		apply_knockback((global_position - from_pos).normalized() * 40.0)
+		apply_knockback((global_position - from_pos).normalized() * (55.0 if big else 40.0))
 	if hp <= 0.0:
 		die()
 
@@ -117,7 +120,7 @@ func _drop_loot() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if not GameState.run_active or GameState.soft_paused:
+	if not GameState.run_active or GameState.soft_paused or GameState.in_breather:
 		velocity = Vector2.ZERO
 		return
 	if slow_timer > 0.0:

@@ -37,6 +37,7 @@ func _ready() -> void:
 		hud.show_banner("Extract open!" + (" (reduced)" if reduced else ""), 3.0)
 	)
 	wave_director.start()
+	hud.bind_wave_director(wave_director)
 
 	GameState.level_up.connect(_on_level_up)
 	GameState.run_ended.connect(_on_run_ended)

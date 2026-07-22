@@ -32,19 +32,20 @@ var _ambush_desc: Dictionary = {}
 
 const ALIVE_CAP := 80
 
-# Wave budgets (enemy cost units)
+# Wave budgets — tuned for early fairness (balance pass).
+# Targets: W1–3 Tail-Slap-only clearable; W5 reachable; W10+boss practiced.
 const WAVE_DATA := [
 	{}, # index 0 unused
-	{"budget": 14, "duration": 35, "pattern": "trickle", "bias": ["rat", "rat", "hornet"], "elite": 0, "mult": 1.0, "breather": 2.5},
-	{"budget": 22, "duration": 40, "pattern": "trickle", "bias": ["hornet", "hornet", "rat"], "elite": 0, "mult": 1.05, "breather": 2.5},
-	{"budget": 30, "duration": 42, "pattern": "burst", "bias": ["rat", "rat", "rat", "hornet"], "elite": 0, "mult": 1.1, "breather": 2.4},
-	{"budget": 36, "duration": 45, "pattern": "trickle", "bias": ["hornet", "rat", "fox"], "elite": 1, "elite_type": "hornet", "mult": 1.15, "breather": 2.3},
-	{"budget": 42, "duration": 48, "pattern": "trickle", "bias": ["fox", "hornet", "rat"], "elite": 0, "mult": 1.2, "breather": 2.2},
-	{"budget": 48, "duration": 50, "pattern": "burst", "bias": ["drone", "hornet", "fox", "rat"], "elite": 1, "elite_type": "hornet", "mult": 1.25, "breather": 2.1},
-	{"budget": 56, "duration": 52, "pattern": "burst", "bias": ["hornet", "hornet", "fox", "rat"], "elite": 2, "elite_type": "hornet", "mult": 1.3, "breather": 1.8},
-	{"budget": 64, "duration": 55, "pattern": "ambush", "bias": ["rat", "hornet", "fox", "drone"], "elite": 1, "elite_type": "fox", "mult": 1.35, "breather": 1.7},
-	{"budget": 70, "duration": 58, "pattern": "ambush", "bias": ["drone", "fox", "hornet", "rat"], "elite": 1, "elite_type": "fox", "mult": 1.4, "breather": 1.6},
-	{"budget": 80, "duration": 60, "pattern": "burst", "bias": ["hornet", "fox", "drone", "rat"], "elite": 3, "elite_type": "hornet", "mult": 1.5, "breather": 1.5},
+	{"budget": 10, "duration": 32, "pattern": "trickle", "bias": ["rat", "rat", "rat", "hornet"], "elite": 0, "mult": 0.9, "breather": 2.8},
+	{"budget": 16, "duration": 36, "pattern": "trickle", "bias": ["rat", "hornet", "hornet"], "elite": 0, "mult": 0.95, "breather": 2.7},
+	{"budget": 24, "duration": 40, "pattern": "burst", "bias": ["rat", "rat", "rat", "hornet"], "elite": 0, "mult": 1.0, "breather": 2.6},
+	{"budget": 30, "duration": 44, "pattern": "trickle", "bias": ["hornet", "rat", "fox"], "elite": 1, "elite_type": "hornet", "mult": 1.08, "breather": 2.4},
+	{"budget": 36, "duration": 46, "pattern": "trickle", "bias": ["fox", "hornet", "rat"], "elite": 0, "mult": 1.12, "breather": 2.3},
+	{"budget": 44, "duration": 50, "pattern": "burst", "bias": ["drone", "hornet", "fox", "rat"], "elite": 1, "elite_type": "hornet", "mult": 1.18, "breather": 2.1},
+	{"budget": 52, "duration": 52, "pattern": "burst", "bias": ["hornet", "hornet", "fox", "rat"], "elite": 2, "elite_type": "hornet", "mult": 1.25, "breather": 1.9},
+	{"budget": 60, "duration": 55, "pattern": "ambush", "bias": ["rat", "hornet", "fox", "drone"], "elite": 1, "elite_type": "fox", "mult": 1.32, "breather": 1.7},
+	{"budget": 68, "duration": 58, "pattern": "ambush", "bias": ["drone", "fox", "hornet", "rat"], "elite": 1, "elite_type": "fox", "mult": 1.38, "breather": 1.6},
+	{"budget": 76, "duration": 60, "pattern": "burst", "bias": ["hornet", "fox", "drone", "rat"], "elite": 3, "elite_type": "hornet", "mult": 1.45, "breather": 1.5},
 ]
 
 
@@ -86,6 +87,7 @@ func _process(delta: float) -> void:
 
 
 func _begin_next_wave() -> void:
+	GameState.in_breather = false
 	current_wave += 1
 	if current_wave > 10:
 		_start_boss()
@@ -225,37 +227,40 @@ func _update_progress() -> void:
 
 func _clear_wave() -> void:
 	phase = Phase.BREATHER
+	GameState.in_breather = true
 	wave_cleared.emit(current_wave)
 	_spawn_wave_rewards(current_wave)
 	var data: Dictionary = WAVE_DATA[current_wave]
-	breather_left = float(data.get("breather", 2.5))
-	if DebugBalance.breather_duration != 2.5:
-		breather_left = DebugBalance.breather_duration * (breather_left / 2.5)
+	breather_left = float(data.get("breather", 2.8))
+	if absf(DebugBalance.breather_duration - 2.8) > 0.01:
+		breather_left *= DebugBalance.breather_duration / 2.8
 	breather_started.emit(breather_left)
 	banner.emit("Wave %d Cleared — chew free!" % current_wave)
-	# Despawn remaining slowly? keep them for pressure during breather — design says short breather to chew
 	GameState.set_wave(current_wave, 1.0)
 
 
 func _spawn_wave_rewards(wave: int) -> void:
 	var player := get_tree().get_first_node_in_group("player") as Node2D
 	var origin: Vector2 = player.global_position if player else Vector2.ZERO
-	var total_xp := 5 + wave * 2
+	# Slightly richer clear XP so combat stays rewarding vs chew
+	var total_xp := 6 + wave * 2
 	var gems := maxi(1, total_xp)
-	for i in mini(gems, 8):
+	for i in mini(gems, 10):
 		var gem := Area2D.new()
 		gem.set_script(preload("res://scripts/loot/xp_gem.gd"))
 		world.add_child(gem)
 		gem.global_position = origin + Vector2(randf_range(-40, 40), randf_range(-40, 40))
 		gem.setup(1 if total_xp < 15 else (5 if i == 0 else 1))
+	# Guaranteed wood pile — chewing stays optional, not mandatory for extract seed
 	var wood_pile := Area2D.new()
 	wood_pile.set_script(preload("res://scripts/loot/pickup.gd"))
 	world.add_child(wood_pile)
 	wood_pile.global_position = origin + Vector2(0, -30)
-	wood_pile.setup("wood", maxi(1, int(wave / 2)))
+	wood_pile.setup("wood", maxi(2, wave))
 
 
 func _start_boss() -> void:
+	GameState.in_breather = false
 	phase = Phase.BOSS
 	GameState.set_wave(10, 1.0)
 	banner.emit("BOSS — Bulldozer!")

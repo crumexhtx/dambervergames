@@ -152,3 +152,30 @@ func play_sfx(id: String) -> void:
 	var p: AudioStreamPlayer = _players.get(id) as AudioStreamPlayer
 	if p and p.stream:
 		p.play()
+
+
+func hit_impact(world_pos: Vector2, heavy: bool = false) -> void:
+	# Stronger shake + brief flash for elites/boss hits
+	shake(10.0 if heavy else 5.0, 0.12 if heavy else 0.06)
+	if fx_layer == null or _perf_lite:
+		return
+	var ring := Polygon2D.new()
+	var pts := PackedVector2Array()
+	var rad := 22.0 if heavy else 12.0
+	for i in 12:
+		pts.append(Vector2.RIGHT.rotated(i * TAU / 12.0) * rad)
+	ring.polygon = pts
+	ring.color = Color(1.0, 0.9, 0.4, 0.45)
+	ring.z_index = 80
+	ring.position = world_pos
+	fx_layer.add_child(ring)
+	var tw := ring.create_tween()
+	tw.tween_property(ring, "scale", Vector2(1.8, 1.8), 0.12)
+	tw.parallel().tween_property(ring, "modulate:a", 0.0, 0.12)
+	tw.tween_callback(ring.queue_free)
+	# Soft hitstop via brief engine time scale dip
+	if heavy and Engine.time_scale >= 0.99:
+		Engine.time_scale = 0.55
+		get_tree().create_timer(0.05, true, true, true).timeout.connect(func():
+			Engine.time_scale = 1.0
+		)
