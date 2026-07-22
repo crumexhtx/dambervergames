@@ -44,6 +44,11 @@ func _build_debug() -> void:
 	_add_slider("XP mult", DebugBalance.xp_mult, 0.5, 3.0, func(v): DebugBalance.xp_mult = v)
 	_add_slider("Breather", DebugBalance.breather_duration, 1.0, 5.0, func(v): DebugBalance.breather_duration = v)
 	_add_slider("Node HP mult", DebugBalance.node_hp_mult, 0.5, 2.0, func(v): DebugBalance.node_hp_mult = v)
+	var overlay := CheckButton.new()
+	overlay.text = "Dev overlay (also F3 in-run)"
+	overlay.button_pressed = DebugBalance.show_dev_overlay
+	overlay.toggled.connect(func(v): DebugBalance.show_dev_overlay = v)
+	debug_box.add_child(overlay)
 	var reset := Button.new()
 	reset.text = "Reset debug defaults"
 	reset.pressed.connect(func():

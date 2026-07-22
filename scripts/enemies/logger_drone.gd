@@ -1,15 +1,15 @@
 extends EnemyBase
 class_name LoggerDroneEnemy
 
-var _shoot_cd: float = 2.0
+var _shoot_cd: float = 2.2
 var preferred_range: float = 4.5
 
 
 func _init() -> void:
 	enemy_id = "drone"
-	max_hp = 35.0
+	max_hp = 32.0
 	move_speed = 2.2
-	contact_damage = 6.0
+	contact_damage = 5.0
 	spawn_cost = 4
 	xp_on_death = 5.0
 
@@ -19,7 +19,7 @@ func _draw_silhouette(host: Node2D) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if not GameState.run_active or GameState.soft_paused:
+	if not GameState.run_active or GameState.soft_paused or GameState.in_breather:
 		velocity = Vector2.ZERO
 		return
 	if slow_timer > 0.0:
@@ -46,7 +46,7 @@ func _physics_process(delta: float) -> void:
 
 	_shoot_cd -= delta
 	if _shoot_cd <= 0.0:
-		_shoot_cd = 2.0
+		_shoot_cd = 2.2
 		_fire_at(player.global_position)
 
 
@@ -68,8 +68,13 @@ func _fire_at(target: Vector2) -> void:
 	bolt.global_position = global_position
 	var dir: Vector2 = (target - global_position).normalized()
 	var speed: float = GameState.pixels(5.0)
-	var dmg: float = 10.0 * _dmg_mult * DebugBalance.dmg_mult
+	var dmg: float = 8.0 * _dmg_mult * DebugBalance.dmg_mult
 	var life: float = 2.0
+	# Brief telegraph diamond so shots aren't color-only
+	var tip := Polygon2D.new()
+	tip.polygon = PackedVector2Array([Vector2(0, -5), Vector2(5, 0), Vector2(0, 5), Vector2(-5, 0)])
+	tip.color = Color(1.0, 0.85, 0.2)
+	bolt.add_child(tip)
 	bolt.body_entered.connect(func(body: Node):
 		if body.is_in_group("player"):
 			GameState.take_damage(dmg)
