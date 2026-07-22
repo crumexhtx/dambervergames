@@ -66,6 +66,8 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not OS.is_debug_build():
+		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F3:
 		DebugBalance.show_dev_overlay = not DebugBalance.show_dev_overlay
 		_dev_label.visible = DebugBalance.show_dev_overlay

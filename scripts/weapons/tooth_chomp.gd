@@ -38,3 +38,5 @@ func fire() -> void:
 			target.apply_knockback(dir * 120.0)
 	Juice.play_sfx("chomp")
 	Juice.shake(4.0, 0.08)
+	if player and player.has_method("play_attack_anim"):
+		player.play_attack_anim()

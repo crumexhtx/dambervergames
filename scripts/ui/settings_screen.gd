@@ -5,6 +5,7 @@ extends Control
 @onready var joy_check: CheckButton = $Panel/VBox/LargeJoystick
 @onready var perf_check: CheckButton = $Panel/VBox/PerfLite
 @onready var debug_box: VBoxContainer = $Panel/VBox/Debug
+@onready var debug_title: Label = $Panel/VBox/DebugTitle
 @onready var back_btn: Button = $Panel/VBox/Back
 
 
@@ -33,7 +34,13 @@ func _ready() -> void:
 	back_btn.pressed.connect(func():
 		get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 	)
-	_build_debug()
+	# Balance / overlay tools: debug builds only (not player-facing in release)
+	if OS.is_debug_build():
+		_build_debug()
+	else:
+		debug_title.visible = false
+		debug_box.visible = false
+		DebugBalance.show_dev_overlay = false
 
 
 func _build_debug() -> void:

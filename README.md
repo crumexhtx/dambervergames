@@ -34,14 +34,19 @@ Bank wood from extracts (and **25% on death from Wave 6+**). Unlock tree include
 ## Project layout
 
 - `docs/DESIGN.md` — systems blueprint
+- `docs/ART.md` — character animation + sprite drop-in pipeline
 - `assets/sfx/` — procedural hit / pickup / level-up WAVs
-- `scripts/fx/silhouettes.gd` — readable beaver / enemy / prop shapes
+- `assets/sprites/characters/` — optional per-character `sheet.png` overrides
+- `scripts/fx/character_animator.gd` — idle/run/dash/chew/attack/hit/death
+- `scripts/fx/silhouettes.gd` — articulated beaver / enemy / prop shapes
 - `scenes/` — menu, run, unlocks, settings
 
 ## Debug / mobile options
 
-Settings → reduce shake, damage numbers, large joystick, **perf lite**, balance sliders, **dev overlay**.
+Settings → reduce shake, damage numbers, large joystick, **perf lite**.
 
-In-run: press **F3** for FPS / wave budget / wood-per-min overlay.
+**Debug builds only:** balance sliders + F3 overlay (hidden in release exports).
 
-See [`docs/BALANCE.md`](docs/BALANCE.md) for fairness targets from the feel pass.
+## Testing
+
+See [`docs/TESTING.md`](docs/TESTING.md) for headless smoke + unit checks.

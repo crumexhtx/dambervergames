@@ -1,0 +1,1 @@
+Drop sheet.png here (bulldozer). See docs/ART.md for frame layout.

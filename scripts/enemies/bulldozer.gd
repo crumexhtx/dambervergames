@@ -62,6 +62,8 @@ func take_damage(amount: float, from_pos: Vector2 = Vector2.ZERO) -> void:
 	Juice.spawn_damage_number(global_position, amount, true)
 	Juice.hit_impact(global_position, true)
 	GameState.boss_hp_changed.emit(hp, max_hp)
+	if _anim:
+		_anim.play_oneshot("hit", 0.2)
 	var pct := hp / max_hp
 	if pct <= 0.3:
 		phase = 3
@@ -74,7 +76,11 @@ func take_damage(amount: float, from_pos: Vector2 = Vector2.ZERO) -> void:
 		Juice.shake(14.0, 0.35)
 		Juice.spawn_leaf_burst(global_position, Color(0.5, 0.5, 0.55))
 		boss_defeated.emit()
-		queue_free()
+		if _anim:
+			_anim.play("death")
+			get_tree().create_timer(0.4).timeout.connect(queue_free)
+		else:
+			queue_free()
 
 
 func _drop_boss_xp() -> void:
@@ -116,12 +122,20 @@ func _physics_process(delta: float) -> void:
 			velocity = Vector2.ZERO
 			_telegraph.default_color.a = 0.7
 			_telegraph.points = PackedVector2Array([Vector2.ZERO, _charge_dir * GameState.pixels(8.0)])
+			if _anim:
+				_anim.set_facing_dir(_charge_dir)
+				_anim.force_state("telegraph")
 			return
 		_telegraph.default_color.a = 0.0
 		velocity = _charge_dir * GameState.pixels(7.0)
 		_charge_telegraph -= delta
+		if _anim:
+			_anim.force_state("lunge")
+			_anim.set_facing_dir(_charge_dir)
 		if _charge_telegraph < -0.45:
 			_charging = false
+			if _anim:
+				_anim.clear_force()
 		move_and_slide()
 		return
 
@@ -130,6 +144,10 @@ func _physics_process(delta: float) -> void:
 	velocity = dir * GameState.pixels(move_speed) + knockback
 	knockback = knockback.move_toward(Vector2.ZERO, 200.0 * delta)
 	move_and_slide()
+	if _anim:
+		_anim.clear_force()
+		_anim.set_facing_dir(dir)
+		_anim.set_speed_factor(0.85)
 
 	_push_cd -= delta
 	if _push_cd <= 0.0:
