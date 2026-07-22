@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://beaver_main_menu"]
+[gd_scene load_steps=2 format=3 uid="uid://d3rfq0mwppdx1"]
 
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1"]
 
@@ -53,16 +53,16 @@ text = "Banked Wood: 0"
 horizontal_alignment = 1
 
 [node name="Play" type="Button" parent="VBox"]
-layout_mode = 2
 custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
 text = "Play"
 
 [node name="Unlocks" type="Button" parent="VBox"]
-layout_mode = 2
 custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
 text = "Unlocks"
 
 [node name="Settings" type="Button" parent="VBox"]
-layout_mode = 2
 custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
 text = "Settings"
