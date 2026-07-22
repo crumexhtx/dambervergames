@@ -50,6 +50,10 @@ text = "Damage numbers"
 layout_mode = 2
 text = "Large joystick"
 
+[node name="PerfLite" type="CheckButton" parent="Panel/VBox"]
+layout_mode = 2
+text = "Perf lite (fewer FX)"
+
 [node name="DebugTitle" type="Label" parent="Panel/VBox"]
 layout_mode = 2
 text = "Debug balance knobs"

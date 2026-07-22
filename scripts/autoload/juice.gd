@@ -1,11 +1,45 @@
 extends Node
-## Screen shake, damage numbers, death pops, vacuum arcs, SFX stubs.
+## Screen shake, damage numbers, death pops, vacuum arcs, SFX.
 
 var camera: Camera2D
 var fx_layer: Node2D
 var _shake_time: float = 0.0
 var _shake_mag: float = 0.0
-var _sfx: Dictionary = {}  # weapon_id -> last play time (stub rate limit)
+var _sfx_cooldown: Dictionary = {}
+var _players: Dictionary = {}  # id -> AudioStreamPlayer
+var _perf_lite: bool = false
+
+const SFX_MAP := {
+	"tail": "res://assets/sfx/tail.wav",
+	"stick": "res://assets/sfx/stick.wav",
+	"sap": "res://assets/sfx/sap.wav",
+	"chomp": "res://assets/sfx/chomp.wav",
+	"level_up": "res://assets/sfx/level_up.wav",
+	"pickup": "res://assets/sfx/pickup.wav",
+	"hurt": "res://assets/sfx/hurt.wav",
+	"extract": "res://assets/sfx/extract.wav",
+}
+
+
+func _ready() -> void:
+	_boot_sfx()
+
+
+func _boot_sfx() -> void:
+	for id in SFX_MAP.keys():
+		var path: String = SFX_MAP[id]
+		if not ResourceLoader.exists(path):
+			continue
+		var stream = load(path)
+		if stream == null:
+			continue
+		var p := AudioStreamPlayer.new()
+		p.name = "sfx_%s" % id
+		p.stream = stream
+		p.bus = "Master"
+		p.max_polyphony = 4
+		add_child(p)
+		_players[id] = p
 
 
 func register_camera(cam: Camera2D) -> void:
@@ -14,6 +48,10 @@ func register_camera(cam: Camera2D) -> void:
 
 func register_fx_layer(layer: Node2D) -> void:
 	fx_layer = layer
+
+
+func set_perf_lite(enabled: bool) -> void:
+	_perf_lite = enabled
 
 
 func _process(delta: float) -> void:
@@ -37,6 +75,8 @@ func spawn_damage_number(world_pos: Vector2, amount: float, crit: bool = false) 
 		return
 	if fx_layer == null:
 		return
+	if _perf_lite and Engine.get_frames_per_second() < 45:
+		return
 	var label := Label.new()
 	label.text = str(int(round(amount)))
 	label.z_index = 100
@@ -53,7 +93,8 @@ func spawn_damage_number(world_pos: Vector2, amount: float, crit: bool = false) 
 func spawn_leaf_burst(world_pos: Vector2, color: Color = Color(0.45, 0.7, 0.3)) -> void:
 	if fx_layer == null:
 		return
-	for i in 8:
+	var count := 4 if _perf_lite else 8
+	for i in count:
 		var p := Polygon2D.new()
 		p.polygon = PackedVector2Array([Vector2(-3, -2), Vector2(3, -2), Vector2(0, 4)])
 		p.color = color
@@ -67,7 +108,7 @@ func spawn_leaf_burst(world_pos: Vector2, color: Color = Color(0.45, 0.7, 0.3)) 
 
 
 func spawn_vacuum_arc(from: Vector2, to: Vector2, color: Color = Color(0.55, 0.85, 1.0, 0.55)) -> void:
-	if fx_layer == null:
+	if fx_layer == null or _perf_lite:
 		return
 	var line := Line2D.new()
 	line.width = 2.0
@@ -83,8 +124,8 @@ func spawn_vacuum_arc(from: Vector2, to: Vector2, color: Color = Color(0.55, 0.8
 
 func level_up_stinger() -> void:
 	shake(5.0, 0.18)
-	# Visual stinger flash (audio asset hook later)
 	if fx_layer == null:
+		play_sfx("level_up")
 		return
 	var flash := Polygon2D.new()
 	flash.polygon = PackedVector2Array([
@@ -103,14 +144,11 @@ func level_up_stinger() -> void:
 
 
 func play_sfx(id: String) -> void:
-	# Stub: distinct channels per weapon / event until real AudioStreams land.
 	var now := Time.get_ticks_msec()
-	var last: int = int(_sfx.get(id, 0))
-	if now - last < 80:
+	var last: int = int(_sfx_cooldown.get(id, 0))
+	if now - last < 70:
 		return
-	_sfx[id] = now
-	# Ready for AudioStreamPlayer children named sfx_<id>
-	var node_name := "sfx_%s" % id
-	var player := get_node_or_null(node_name)
-	if player is AudioStreamPlayer and (player as AudioStreamPlayer).stream != null:
-		(player as AudioStreamPlayer).play()
+	_sfx_cooldown[id] = now
+	var p: AudioStreamPlayer = _players.get(id) as AudioStreamPlayer
+	if p and p.stream:
+		p.play()

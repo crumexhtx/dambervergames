@@ -15,7 +15,7 @@ var is_elite: bool = false
 var slow_factor: float = 1.0
 var slow_timer: float = 0.0
 var knockback: Vector2 = Vector2.ZERO
-var _visual: Polygon2D
+var _visual_root: Node2D
 var _hp_mult: float = 1.0
 var _dmg_mult: float = 1.0
 
@@ -38,20 +38,28 @@ func configure(elite: bool = false, wave_mult: float = 1.0) -> void:
 		xp_on_death = 15.0
 		wood_on_death = maxi(1, wood_on_death + 2)
 	hp = max_hp * DebugBalance.hp_mult * _hp_mult
+	if is_inside_tree():
+		_build_visual()
 
 
 func _build_visual() -> void:
-	_visual = Polygon2D.new()
-	_visual.polygon = PackedVector2Array([
-		Vector2(-10, -8), Vector2(10, -8), Vector2(12, 8), Vector2(-12, 8)
-	])
-	_visual.color = Color(0.9, 0.75, 0.15) if not is_elite else Color(1.0, 0.35, 0.15)
-	add_child(_visual)
-	var shape := CollisionShape2D.new()
-	var circle := CircleShape2D.new()
-	circle.radius = 12.0
-	shape.shape = circle
-	add_child(shape)
+	if _visual_root and is_instance_valid(_visual_root):
+		_visual_root.queue_free()
+	_visual_root = Node2D.new()
+	_visual_root.name = "Visual"
+	add_child(_visual_root)
+	_draw_silhouette(_visual_root)
+	var shape := get_node_or_null("CollisionShape2D")
+	if shape == null:
+		shape = CollisionShape2D.new()
+		var circle := CircleShape2D.new()
+		circle.radius = 12.0
+		shape.shape = circle
+		add_child(shape)
+
+
+func _draw_silhouette(host: Node2D) -> void:
+	Silhouettes.build_hornet(host, is_elite)
 
 
 func get_contact_damage() -> float:
@@ -79,7 +87,8 @@ func apply_slow(amount: float, duration: float) -> void:
 
 func die() -> void:
 	GameState.record_kill()
-	Juice.spawn_leaf_burst(global_position, _visual.color if _visual else Color(0.5, 0.7, 0.3))
+	var col := Color(0.5, 0.7, 0.3)
+	Juice.spawn_leaf_burst(global_position, col)
 	_drop_loot()
 	queue_free()
 
@@ -88,9 +97,8 @@ func _drop_loot() -> void:
 	var world := get_tree().current_scene.get_node_or_null("World")
 	if world == null:
 		return
-	var gem_scene = preload("res://scripts/loot/xp_gem.gd")
 	var gem := Area2D.new()
-	gem.set_script(gem_scene)
+	gem.set_script(preload("res://scripts/loot/xp_gem.gd"))
 	world.add_child(gem)
 	gem.global_position = global_position + Vector2(randf_range(-8, 8), randf_range(-8, 8))
 	var xp_val := xp_on_death

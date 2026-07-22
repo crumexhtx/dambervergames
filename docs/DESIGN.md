@@ -61,18 +61,28 @@ Forest clearing ~50×50 u, hand-scattered props, ponds, Dam Extract Zone north. 
 
 ## Meta (banked wood)
 
-50 HP · 100 Stick pool · 150 start berry · 200 Sap pool · 300 Decoy · 400 second dash. No energy gate.
+50 HP · 100 Stick pool · 150 start berry · 200 Sap pool · **250 Tooth Chomp** · 300 Decoy · **350 level-up reroll** · 400 second dash. No energy gate.
+
+## v1.1
+
+- Die on Wave **6+** → bank **25%** carried wood (earlier → 0)
+- **Tooth Chomp** weapon (meta unlock → offer pool; still max 3 weapons)
+- **1 free reroll** per level-up when Second Thoughts is unlocked
 
 ## Feel / a11y
 
-Screen shake, damage numbers, vacuum, level-up cards, leaf death bursts. Toggles: reduce shake, damage numbers, large joystick.
+Screen shake, damage numbers, vacuum arcs, level-up stinger, leaf death bursts, procedural SFX. Toggles: reduce shake, damage numbers, large joystick, perf lite.
+
+## Mobile
+
+Portrait 720×1280, mobile renderer, Android export docs in `docs/ANDROID_EXPORT.md`. Alive cap 80.
 
 ## Debug knobs
 
 Wave budget · enemy HP/DMG · player DMG · XP · breather · node HP.
 
-## Out of v1
+## Out of later scope
 
-Classes, biomes, co-op, endless, carry weight, rerolls/banishes, dailies, partial bank-on-death (v1.1).
+Classes, biomes, co-op, endless, carry weight, dailies, banishes.
 
 *Living doc — update when systems change in implementation.*

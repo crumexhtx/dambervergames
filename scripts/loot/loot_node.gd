@@ -6,7 +6,7 @@ class_name LootNode
 @export var max_hp: float = 60.0
 
 var hp: float = 60.0
-var _visual: Polygon2D
+var _visual_root: Node2D
 var _destroyed: bool = false
 
 
@@ -46,30 +46,20 @@ func _apply_type() -> void:
 func _build() -> void:
 	for c in get_children():
 		c.queue_free()
-	_visual = Polygon2D.new()
+	_visual_root = Node2D.new()
+	_visual_root.name = "Visual"
+	add_child(_visual_root)
 	match node_type:
 		"sapling":
-			_visual.polygon = PackedVector2Array([Vector2(0, -18), Vector2(10, 10), Vector2(-10, 10)])
-			_visual.color = Color(0.35, 0.65, 0.3)
+			Silhouettes.build_tree(_visual_root, true)
 		"rock":
-			_visual.polygon = PackedVector2Array([Vector2(-14, -8), Vector2(12, -10), Vector2(16, 10), Vector2(-12, 12)])
-			_visual.color = Color(0.5, 0.52, 0.55)
+			Silhouettes.build_rock(_visual_root)
 		"berry":
-			_visual.polygon = PackedVector2Array([Vector2(-10, -8), Vector2(10, -8), Vector2(8, 10), Vector2(-8, 10)])
-			_visual.color = Color(0.55, 0.2, 0.35)
+			Silhouettes.build_berry_bush(_visual_root)
 		"crate":
-			_visual.polygon = PackedVector2Array([Vector2(-12, -12), Vector2(12, -12), Vector2(12, 12), Vector2(-12, 12)])
-			_visual.color = Color(0.65, 0.45, 0.2)
+			Silhouettes.build_crate(_visual_root)
 		_:
-			_visual.polygon = PackedVector2Array([Vector2(0, -28), Vector2(16, 14), Vector2(-16, 14)])
-			_visual.color = Color(0.25, 0.5, 0.22)
-	add_child(_visual)
-	# Trunk / base
-	if node_type == "tree" or node_type == "sapling":
-		var trunk := Polygon2D.new()
-		trunk.polygon = PackedVector2Array([Vector2(-4, 10), Vector2(4, 10), Vector2(4, 20), Vector2(-4, 20)])
-		trunk.color = Color(0.4, 0.25, 0.12)
-		add_child(trunk)
+			Silhouettes.build_tree(_visual_root, false)
 	var shape := CollisionShape2D.new()
 	var circle := CircleShape2D.new()
 	circle.radius = 14.0
@@ -81,10 +71,10 @@ func receive_chew(amount: float) -> void:
 	if _destroyed:
 		return
 	hp -= amount
-	if _visual:
-		_visual.modulate = Color(1.2, 1.1, 1.0)
+	if _visual_root:
+		_visual_root.modulate = Color(1.2, 1.1, 1.0)
 		var tw := create_tween()
-		tw.tween_property(_visual, "modulate", Color.WHITE, 0.08)
+		tw.tween_property(_visual_root, "modulate", Color.WHITE, 0.08)
 	if hp <= 0.0:
 		_destroy()
 
@@ -100,7 +90,6 @@ func _destroy() -> void:
 				_spawn_pickup(world, "wood", randi_range(3, 5))
 				if randf() < 0.1:
 					_spawn_pickup(world, "berry", 1)
-				# sap heal chance
 				if randf() < 0.15:
 					GameState.heal(10.0)
 					Juice.spawn_damage_number(global_position, 10, false)
@@ -116,7 +105,8 @@ func _destroy() -> void:
 				world.add_child(gem)
 				gem.global_position = global_position
 				gem.setup(5)
-	Juice.spawn_leaf_burst(global_position, _visual.color if _visual else Color(0.4, 0.6, 0.3))
+	var burst_col := Color(0.4, 0.6, 0.3)
+	Juice.spawn_leaf_burst(global_position, burst_col)
 	queue_free()
 
 

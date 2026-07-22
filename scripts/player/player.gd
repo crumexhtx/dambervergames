@@ -4,7 +4,7 @@ class_name Player
 
 signal died
 
-@onready var body_visual: Polygon2D = $Body
+@onready var body_visual: Node2D = $Body
 @onready var hitbox: Area2D = $Hitbox
 @onready var chew_area: Area2D = $ChewArea
 @onready var pickup_area: Area2D = $PickupArea
@@ -25,6 +25,13 @@ const DASH_DURATION := 0.12
 
 func _ready() -> void:
 	add_to_group("player")
+	if body_visual is Polygon2D:
+		(body_visual as Polygon2D).polygon = PackedVector2Array()
+		(body_visual as Polygon2D).color = Color(0, 0, 0, 0)
+	if body_visual:
+		Silhouettes.build_beaver(body_visual)
+	if has_node("Tail"):
+		$Tail.visible = false
 	_update_pickup_radius()
 	hitbox.body_entered.connect(_on_hitbox_body)
 	hitbox.area_entered.connect(_on_hitbox_area)
@@ -201,6 +208,7 @@ func _contact_enemies(delta: float) -> void:
 	if hit:
 		_contact_tick = 0.0
 		Juice.shake(5.0, 0.1)
+		Juice.play_sfx("hurt")
 
 
 func _on_hitbox_body(_body: Node) -> void:

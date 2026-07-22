@@ -3,6 +3,7 @@ extends Control
 @onready var shake_check: CheckButton = $Panel/VBox/ReduceShake
 @onready var dmg_check: CheckButton = $Panel/VBox/DamageNumbers
 @onready var joy_check: CheckButton = $Panel/VBox/LargeJoystick
+@onready var perf_check: CheckButton = $Panel/VBox/PerfLite
 @onready var debug_box: VBoxContainer = $Panel/VBox/Debug
 @onready var back_btn: Button = $Panel/VBox/Back
 
@@ -11,6 +12,7 @@ func _ready() -> void:
 	shake_check.button_pressed = MetaProgression.reduce_shake
 	dmg_check.button_pressed = MetaProgression.show_damage_numbers
 	joy_check.button_pressed = MetaProgression.large_joystick
+	perf_check.button_pressed = MetaProgression.perf_lite_mode
 	shake_check.toggled.connect(func(v):
 		MetaProgression.reduce_shake = v
 		MetaProgression.save()
@@ -22,6 +24,11 @@ func _ready() -> void:
 	joy_check.toggled.connect(func(v):
 		MetaProgression.large_joystick = v
 		MetaProgression.save()
+	)
+	perf_check.toggled.connect(func(v):
+		MetaProgression.perf_lite_mode = v
+		MetaProgression.save()
+		Juice.set_perf_lite(v)
 	)
 	back_btn.pressed.connect(func():
 		get_tree().change_scene_to_file("res://scenes/main_menu.tscn")

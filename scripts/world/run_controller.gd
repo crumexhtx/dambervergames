@@ -21,6 +21,7 @@ var _pending_levelups: int = 0
 func _ready() -> void:
 	summary.visible = false
 	Juice.register_fx_layer(fx)
+	Juice.set_perf_lite(MetaProgression.perf_lite_mode)
 	camera.target = player
 	ArenaBuilder.build(world)
 	GameState.start_run()

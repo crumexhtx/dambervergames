@@ -42,23 +42,16 @@ func _ready() -> void:
 	add_child(_telegraph)
 
 
+func _draw_silhouette(host: Node2D) -> void:
+	Silhouettes.build_bulldozer(host)
+
+
 func _build_visual() -> void:
-	_visual = Polygon2D.new()
-	_visual.polygon = PackedVector2Array([
-		Vector2(-18, -14), Vector2(18, -14), Vector2(22, 16), Vector2(-22, 16)
-	])
-	_visual.color = Color(0.35, 0.38, 0.42)
-	add_child(_visual)
-	# Blade
-	var blade := Polygon2D.new()
-	blade.polygon = PackedVector2Array([Vector2(-24, 8), Vector2(24, 8), Vector2(20, 18), Vector2(-20, 18)])
-	blade.color = Color(0.7, 0.7, 0.75)
-	add_child(blade)
-	var shape := CollisionShape2D.new()
-	var circle := CircleShape2D.new()
-	circle.radius = 20.0
-	shape.shape = circle
-	add_child(shape)
+	# Use shared silhouette path from EnemyBase
+	super._build_visual()
+	var shape := get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if shape and shape.shape is CircleShape2D:
+		(shape.shape as CircleShape2D).radius = 20.0
 
 
 func take_damage(amount: float, from_pos: Vector2 = Vector2.ZERO) -> void:

@@ -70,4 +70,5 @@ func _collect() -> void:
 			GameState.add_stone(amount)
 		"berry":
 			GameState.add_berries(amount)
+	Juice.play_sfx("pickup")
 	queue_free()
