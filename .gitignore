@@ -17,6 +17,11 @@ export_presets.cfg
 .vscode/
 .idea/
 
+# Local secrets
+.env
+.env.*
+!.env.example
+
 # Exports
 build/
 android/

@@ -14,8 +14,8 @@ config/name="Beaver Survivor"
 config/description="Mobile top-down auto-shooter: chew wood, survive swarms, extract to the dam."
 run/main_scene="res://scenes/main_menu.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
-config/icon="res://assets/icon.svg"
 run/max_fps=60
+config/icon="res://assets/icon.svg"
 
 [autoload]
 
