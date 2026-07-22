@@ -66,4 +66,5 @@ func _on_body(body: Node) -> void:
 
 func _collect() -> void:
 	GameState.add_xp(float(xp_value))
+	Juice.play_sfx("pickup")
 	queue_free()

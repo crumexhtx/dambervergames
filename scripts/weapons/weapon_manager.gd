@@ -4,6 +4,7 @@ class_name WeaponManager
 const TailSlapScript = preload("res://scripts/weapons/tail_slap.gd")
 const StickThrowScript = preload("res://scripts/weapons/stick_throw.gd")
 const SapSprayScript = preload("res://scripts/weapons/sap_spray.gd")
+const ToothChompScript = preload("res://scripts/weapons/tooth_chomp.gd")
 
 var player: Player
 var weapons: Dictionary = {}
@@ -33,6 +34,8 @@ func _add_weapon(id: String) -> void:
 			w = StickThrowScript.new()
 		"sap":
 			w = SapSprayScript.new()
+		"chomp":
+			w = ToothChompScript.new()
 		_:
 			return
 	add_child(w)

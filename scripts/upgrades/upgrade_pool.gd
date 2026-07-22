@@ -1,11 +1,12 @@
 extends RefCounted
 class_name UpgradePool
-## Weighted 3-card offers from the v1 upgrade pool.
+## Weighted 3-card offers from the upgrade pool (v1 + v1.1 Tooth Chomp).
 
 const CARDS := [
 	{"id": "WPN_TAIL", "name": "Heavier Tail", "desc": "Tail Slap +1 rank", "rarity": "common", "kind": "weapon", "weapon": "tail"},
 	{"id": "WPN_STICK", "name": "Sharper Sticks", "desc": "Stick Throw +1 / unlock", "rarity": "common", "kind": "weapon", "weapon": "stick"},
 	{"id": "WPN_SAP", "name": "Stickier Sap", "desc": "Sap Spray +1 / unlock", "rarity": "common", "kind": "weapon", "weapon": "sap"},
+	{"id": "WPN_CHOMP", "name": "Tooth Chomp", "desc": "Chomp +1 / unlock", "rarity": "common", "kind": "weapon", "weapon": "chomp"},
 	{"id": "STAT_HP", "name": "Thick Fur", "desc": "+20 Max HP, heal 20", "rarity": "common", "kind": "stat"},
 	{"id": "STAT_SPD", "name": "Webbed Hustle", "desc": "+12% move speed", "rarity": "common", "kind": "stat"},
 	{"id": "STAT_ARM", "name": "Bark Armor", "desc": "+8% armor", "rarity": "common", "kind": "stat"},
@@ -28,20 +29,16 @@ static func roll_offers(count: int = 3) -> Array[Dictionary]:
 			weight = 15
 		elif c.kind == "weapon" and c.weapon not in GameState.owned_weapons:
 			weight = 25
-		# At weapon cap, weapon unlocks convert to ranks of owned / stats — still allow owned weapon ranks
 		if c.kind == "weapon" and c.weapon not in GameState.owned_weapons:
 			if GameState.owned_weapons.size() >= GameState.max_weapons:
 				continue
-			# Stick/Sap gated by meta unless somehow already owned
-			if c.weapon == "stick" and not MetaProgression.unlock_stick_in_pool and "stick" not in GameState.owned_weapons:
-				# Still allow mid-run unlock via card once meta unlocked OR after level 3 naturally
-				# Design: Stick available in offers when meta unlocked; also allow from level offers after early game
-				if GameState.level < 3:
-					continue
+			if c.weapon == "stick" and not MetaProgression.unlock_stick_in_pool and GameState.level < 3:
+				continue
 			if c.weapon == "sap" and not MetaProgression.unlock_sap_in_pool and GameState.level < 6:
 				continue
+			if c.weapon == "chomp" and not MetaProgression.unlock_chomp_in_pool:
+				continue
 		if c.id == "RARE_DECOY" and not MetaProgression.unlock_decoy_in_pool:
-			# Still allow rare if decoy unlocked via meta; otherwise skip until unlocked
 			continue
 		for i in weight:
 			pool.append(c)
@@ -50,13 +47,11 @@ static func roll_offers(count: int = 3) -> Array[Dictionary]:
 	while offers.size() < count and pool.size() > 0:
 		var pick: Dictionary = pool[randi() % pool.size()]
 		if used.has(pick.id):
-			# allow duplicates for stackable sometimes — skip identical in same offer set
 			continue
 		used[pick.id] = true
 		offers.append(pick)
-	# Fallback fill
 	while offers.size() < count:
-		offers.append(CARDS[3])  # Thick Fur
+		offers.append(CARDS[4])  # Thick Fur
 	return offers
 
 
@@ -72,7 +67,7 @@ static func apply(card: Dictionary, player: Player) -> void:
 	GameState.upgrades_taken.append(str(card.name))
 	GameState.upgrades_changed.emit(GameState.upgrades_taken)
 	match str(card.id):
-		"WPN_TAIL", "WPN_STICK", "WPN_SAP":
+		"WPN_TAIL", "WPN_STICK", "WPN_SAP", "WPN_CHOMP":
 			var wid: String = card.weapon
 			var wm := player.weapon_manager as WeaponManager
 			if wid in GameState.owned_weapons:

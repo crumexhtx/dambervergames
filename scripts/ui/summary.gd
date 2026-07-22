@@ -13,7 +13,12 @@ func _ready() -> void:
 
 
 func show_summary(success: bool, summary: Dictionary) -> void:
-	title.text = "Dam Secure!" if success else "Bonk! Flattened!"
+	if success:
+		title.text = "Dam Secure!"
+	elif summary.get("partial_bank", false):
+		title.text = "Bonk! (salvaged some wood)"
+	else:
+		title.text = "Bonk! Flattened!"
 	body.text = "\n".join([
 		"Wave reached: %s" % str(summary.get("wave", 0)),
 		"Time alive: %.0fs" % float(summary.get("time_alive", 0)),

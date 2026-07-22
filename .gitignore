@@ -2,7 +2,13 @@
 .godot/
 *.translation
 export_presets.cfg
+
+# Import cache under .godot only; keep asset .import sidecars tracked
 *.import
+!assets/**/*.import
+
+# Keep the example preset tracked
+!export_presets.cfg.example
 
 # OS / editor
 .DS_Store

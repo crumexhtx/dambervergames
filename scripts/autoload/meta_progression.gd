@@ -11,11 +11,14 @@ var unlock_start_berry: bool = false
 var unlock_sap_in_pool: bool = false
 var unlock_decoy_in_pool: bool = false
 var unlock_second_dash: bool = false
+var unlock_chomp_in_pool: bool = false
+var unlock_level_reroll: bool = false
 
 # Settings
 var reduce_shake: bool = false
 var show_damage_numbers: bool = true
 var large_joystick: bool = false
+var perf_lite_mode: bool = false
 
 var bonus_starting_hp: int:
 	get:
@@ -26,7 +29,9 @@ const UNLOCKS := [
 	{"id": "stick", "cost": 100, "name": "Stick Bundle", "desc": "Stick Throw in offer pool"},
 	{"id": "berry", "cost": 150, "name": "Trail Snack", "desc": "Start with +1 berry"},
 	{"id": "sap", "cost": 200, "name": "Sap Glands", "desc": "Sap Spray in offer pool"},
+	{"id": "chomp", "cost": 250, "name": "Tooth Chomp", "desc": "Chomp weapon in offer pool"},
 	{"id": "decoy", "cost": 300, "name": "Decoy Plans", "desc": "Decoy Dam in upgrade pool"},
+	{"id": "reroll", "cost": 350, "name": "Second Thoughts", "desc": "1 free reroll per level-up"},
 	{"id": "dash2", "cost": 400, "name": "Double Dash", "desc": "Second dash charge"},
 ]
 
@@ -50,8 +55,12 @@ func is_unlocked(id: String) -> bool:
 			return unlock_start_berry
 		"sap":
 			return unlock_sap_in_pool
+		"chomp":
+			return unlock_chomp_in_pool
 		"decoy":
 			return unlock_decoy_in_pool
+		"reroll":
+			return unlock_level_reroll
 		"dash2":
 			return unlock_second_dash
 	return false
@@ -88,8 +97,12 @@ func _apply_unlock(id: String) -> void:
 			unlock_start_berry = true
 		"sap":
 			unlock_sap_in_pool = true
+		"chomp":
+			unlock_chomp_in_pool = true
 		"decoy":
 			unlock_decoy_in_pool = true
+		"reroll":
+			unlock_level_reroll = true
 		"dash2":
 			unlock_second_dash = true
 
@@ -101,11 +114,14 @@ func save() -> void:
 	cfg.set_value("meta", "unlock_stick_in_pool", unlock_stick_in_pool)
 	cfg.set_value("meta", "unlock_start_berry", unlock_start_berry)
 	cfg.set_value("meta", "unlock_sap_in_pool", unlock_sap_in_pool)
+	cfg.set_value("meta", "unlock_chomp_in_pool", unlock_chomp_in_pool)
 	cfg.set_value("meta", "unlock_decoy_in_pool", unlock_decoy_in_pool)
+	cfg.set_value("meta", "unlock_level_reroll", unlock_level_reroll)
 	cfg.set_value("meta", "unlock_second_dash", unlock_second_dash)
 	cfg.set_value("settings", "reduce_shake", reduce_shake)
 	cfg.set_value("settings", "show_damage_numbers", show_damage_numbers)
 	cfg.set_value("settings", "large_joystick", large_joystick)
+	cfg.set_value("settings", "perf_lite_mode", perf_lite_mode)
 	cfg.save(SAVE_PATH)
 
 
@@ -118,8 +134,11 @@ func load_save() -> void:
 	unlock_stick_in_pool = bool(cfg.get_value("meta", "unlock_stick_in_pool", false))
 	unlock_start_berry = bool(cfg.get_value("meta", "unlock_start_berry", false))
 	unlock_sap_in_pool = bool(cfg.get_value("meta", "unlock_sap_in_pool", false))
+	unlock_chomp_in_pool = bool(cfg.get_value("meta", "unlock_chomp_in_pool", false))
 	unlock_decoy_in_pool = bool(cfg.get_value("meta", "unlock_decoy_in_pool", false))
+	unlock_level_reroll = bool(cfg.get_value("meta", "unlock_level_reroll", false))
 	unlock_second_dash = bool(cfg.get_value("meta", "unlock_second_dash", false))
 	reduce_shake = bool(cfg.get_value("settings", "reduce_shake", false))
 	show_damage_numbers = bool(cfg.get_value("settings", "show_damage_numbers", true))
 	large_joystick = bool(cfg.get_value("settings", "large_joystick", false))
+	perf_lite_mode = bool(cfg.get_value("settings", "perf_lite_mode", false))

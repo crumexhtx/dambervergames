@@ -14,18 +14,8 @@ func _init() -> void:
 	xp_on_death = 5.0
 
 
-func _build_visual() -> void:
-	_visual = Polygon2D.new()
-	_visual.polygon = PackedVector2Array([
-		Vector2(-10, -10), Vector2(10, -10), Vector2(10, 10), Vector2(-10, 10)
-	])
-	_visual.color = Color(0.4, 0.45, 0.55) if not is_elite else Color(0.8, 0.3, 0.4)
-	add_child(_visual)
-	var shape := CollisionShape2D.new()
-	var circle := CircleShape2D.new()
-	circle.radius = 12.0
-	shape.shape = circle
-	add_child(shape)
+func _draw_silhouette(host: Node2D) -> void:
+	Silhouettes.build_drone(host, is_elite)
 
 
 func _physics_process(delta: float) -> void:

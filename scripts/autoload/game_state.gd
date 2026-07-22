@@ -195,6 +195,11 @@ func _end_run(success: bool) -> void:
 		if extract_reduced_bonus:
 			banked = int(wood * 0.6)
 		MetaProgression.bank_wood(banked)
+	else:
+		# v1.1 partial success: die on Wave 6+ banks 25% carried wood
+		if wave >= 6 and wood > 0:
+			banked = int(wood * 0.25)
+			MetaProgression.bank_wood(banked)
 	var summary := {
 		"success": success,
 		"wave": wave,
@@ -206,6 +211,7 @@ func _end_run(success: bool) -> void:
 		"upgrades": upgrades_taken.duplicate(),
 		"boss_killed": boss_killed,
 		"level": level,
+		"partial_bank": (not success and banked > 0),
 	}
 	run_ended.emit(success, summary)
 
